@@ -107,8 +107,24 @@ const gettingMyVideosController = asyncHandler(async (req, res) => {
 });
 
 const gettingMixedVideosController = asyncHandler(async (req, res) => {
+   const { username, passward, alreadyGettingVideosKey } = req.body;
+  if (!username || !passward) {
+    res.send("you have no account");
+  }
+  if(!alreadyGettingVideosKey){
+      res.send("something is wrong");
+  }
+  const user = await User.findOne({ username: username });
+  if (!user) {
+    res.send("you have no account");
+  }
+  if (user) {
+    if (user.passward === passward) {
   let allMyVideos = [];
-  allMyVideos = await Video.find();
+  allMyVideos = await Video.find().sort({ createdAt: -1 })  // Sort by `createdAt` in descending order
+  .skip(alreadyGettingVideosKey.length)               // Skip the first `skip` documents
+  .limit(9);           // Limit the result to `limit` documents
+  
   const allMyVideosKey = [];
   const allMyVideosLN = [];
   for (let i = 0; i < allMyVideos.length; i++) {
@@ -130,6 +146,9 @@ const gettingMixedVideosController = asyncHandler(async (req, res) => {
     allVideosOwnerLN: allMyVideosLN,
   });
   res.send();
+
+    }
+  }
 });
 
 const gettingMusicVideosController = asyncHandler(async (req, res) => {
